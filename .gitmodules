@@ -1,0 +1,3 @@
+[submodule "web/src/views/plugins/dvadmin3-celery-web"]
+	path = web/src/views/plugins/dvadmin3-celery-web
+	url = https://gitee.com/huge-dream/dvadmin3-celery-web
