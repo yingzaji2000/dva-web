@@ -56,5 +56,4 @@ declare type ParentViewState<T = any> = {
 declare type LinkViewState = {
 	title: string;
 	isLink: string;
-	query: any;
 };

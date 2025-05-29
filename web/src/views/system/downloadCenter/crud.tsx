@@ -2,8 +2,7 @@ import { CrudOptions, AddReq, DelReq, EditReq, dict, CrudExpose, compute } from 
 import * as api from './api';
 import { dictionary } from '/@/utils/dictionary';
 import { successMessage } from '../../../utils/message';
-import { auth } from '/@/utils/authFunction';
-import { getBaseURL } from '/@/utils/baseUrl';
+import { auth } from '/@/utils/authFunction'
 
 interface CreateCrudOptionsTypes {
     output: any;
@@ -28,6 +27,7 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
 
     //权限判定
 
+    // @ts-ignore
     // @ts-ignore
     return {
         crudOptions: {
@@ -72,7 +72,7 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
                         show: compute(ctx => ctx.row.task_status === 2),
                         text: '下载文件',
                         type: 'warning',
-                        click: (ctx) => window.open(getBaseURL(ctx.row.url), '_blank')
+                        click: (ctx) => window.open(ctx.row.url, '_blank')
                     }
                 },
             },

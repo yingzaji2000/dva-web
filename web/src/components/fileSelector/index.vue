@@ -8,29 +8,7 @@
           <el-option v-for="item, index in listAllData" :key="index" :value="String(item[props.valueKey])"
             :label="item.name" />
         </el-select>
-
-        <div v-if="props.inputType === 'image' && props.multiple"
-          style="width: 100%; display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 4px;">
-          <div v-for="item, index in (data || [])" style="position: relative;"
-            :style="{ width: props.inputSize + 'px', height: props.inputSize + 'px' }">
-            <el-image :src="item" :key="index" fit="scale-down" class="itemList"
-              :style="{ width: props.inputSize + 'px', aspectRatio: '1 / 1' }" />
-            <el-icon v-show="(!!data && !props.disabled)" class="closeHover" :size="16" @click="clearOne(item)">
-              <Close />
-            </el-icon>
-          </div>
-          <div style="position: relative;" :style="{ width: props.inputSize + 'px', height: props.inputSize + 'px' }">
-            <div
-              style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
-              <el-icon :size="24">
-                <Plus />
-              </el-icon>
-            </div>
-            <div @click="selectVisiable = true && !props.disabled" class="addControllorHover"
-              :style="{ cursor: props.disabled ? 'not-allowed' : 'pointer' }"></div>
-          </div>
-        </div>
-        <div v-if="props.inputType === 'image' && !props.multiple" class="form-display" style="position: relative;"
+        <div v-if="props.inputType === 'image'" style="position: relative;" class="form-display"
           @mouseenter="formDisplayEnter" @mouseleave="formDisplayLeave"
           :style="{ width: props.inputSize + 'px', height: props.inputSize + 'px' }">
           <el-image :src="data" fit="scale-down" :style="{ width: props.inputSize + 'px', aspectRatio: '1 / 1' }">
@@ -46,11 +24,10 @@
           </div>
           <div @click="selectVisiable = true && !props.disabled" class="addControllorHover"
             :style="{ cursor: props.disabled ? 'not-allowed' : 'pointer' }"></div>
-          <el-icon v-show="(!!data && !props.disabled) && !props.multiple" class="closeHover" :size="16" @click="clear">
+          <el-icon v-show="!!data && !props.disabled" class="closeHover" :size="16" @click="clear">
             <Close />
           </el-icon>
         </div>
-
         <div v-if="props.inputType === 'video'" class="form-display" @mouseenter="formDisplayEnter"
           @mouseleave="formDisplayLeave"
           style="position: relative; display: flex; align-items: center;  justify-items: center;"
@@ -69,7 +46,6 @@
             <Close />
           </el-icon>
         </div>
-
         <div v-if="props.inputType === 'audio'" class="form-display" @mouseenter="formDisplayEnter"
           @mouseleave="formDisplayLeave"
           style="position: relative; display: flex; align-items: center;  justify-items: center;"
@@ -90,7 +66,7 @@
         </div>
       </div>
     </slot>
-    <el-dialog v-model="selectVisiable" :draggable="true" width="50%" :align-center="false" :append-to-body="true"
+    <el-dialog v-model="selectVisiable" :draggable="false" width="50%" :align-center="false" :append-to-body="true"
       @open="if (listData.length === 0) listRequest();" @close="onClose" @closed="onClosed" modal-class="_overlay">
       <template #header>
         <span class="el-dialog__title">文件选择</span>
@@ -223,7 +199,7 @@ const props = defineProps({
   tabsShow: { type: Number, default: SHOW.ALL },
 
   // 是否可以多选，默认单选
-  // 该值为true时inputType必须是selector或image（暂不支持其他type的多选）
+  // 该值为true时inputType必须是selector（暂不支持其他type的多选）
   multiple: { type: Boolean, default: false },
 
   // 是否可选，该参数用于只上传和展示而不选择和绑定model的情况
@@ -272,7 +248,7 @@ const listRequest = async () => {
   });
   listData.value = [];
   await nextTick();
-  listData.value = (res.data as any[]).map((item: any) => ({ ...item, url: getBaseURL(item.url) }));
+  listData.value = res.data;
   pageForm.total = res.total;
   pageForm.page = res.page;
   pageForm.limit = res.limit;
@@ -298,14 +274,11 @@ const onItemClick = async (e: MouseEvent) => {
   while (!target.dataset.id) target = target.parentElement as HTMLElement;
   let fileId = target.dataset.id;
   if (props.multiple) {
-    if (!!!data.value) data.value = [];
     if (target.classList.contains('active')) { target.classList.remove('active'); flat = -1; }
     else { target.classList.add('active'); flat = 1; }
     if (data.value.length) {
-      let _l = JSON.parse(JSON.stringify(data.value));
-      if (flat === 1) _l.push(fileId);
-      else _l.splice(_l.indexOf(fileId), 1);
-      data.value = _l;
+      if (flat === 1) data.value.push(fileId);
+      else data.value.splice(data.value.indexOf(fileId), 1);
     } else data.value = [fileId];
     // 去重排序，<降序，>升序
     data.value = Array.from(new Set(data.value)).sort();
@@ -352,12 +325,8 @@ const clearState = () => {
   // all数据不能清，因为all只会在挂载的时候赋值一次
   // listAllData.value = [];
 };
-const clear = () => { data.value = null; onDataChange(null); };
-const clearOne = (item: any) => {
-  let _l = (JSON.parse(JSON.stringify(data.value)) as any[]).filter((i: any) => i !== item)
-  data.value = _l;
-  onDataChange(_l);
-};
+const clear = () => { data.value = null; onDataChange(null); }
+
 
 // 网络文件部分
 const netLoading = ref<boolean>(false);
@@ -409,21 +378,13 @@ const data = ref<any>(null);
 const emit = defineEmits(['update:modelValue', 'onSave', 'onClose', 'onClosed']);
 watch(
   () => props.modelValue,
-  (val) => data.value = props.multiple ? JSON.parse(JSON.stringify(val)) : val,
+  (val) => data.value = val,
   { immediate: true }
 );
 const { ui } = useUi();
 const formValidator = ui.formItem.injectFormItemContext();
 const onDataChange = (value: any) => {
-  let _v = null;
-  if (value) {
-    if (typeof value === 'string') _v = value.replace(/\\/g, '/');
-    else {
-      _v = [];
-      for (let i of value) _v.push(i.replace(/\\/g, '/'));
-    }
-  }
-  emit('update:modelValue', _v);
+  emit('update:modelValue', value);
   formValidator.onChange();
   formValidator.onBlur();
 };
@@ -431,8 +392,7 @@ const onDataChange = (value: any) => {
 defineExpose({ data, onDataChange, selectVisiable, clearState, clear });
 
 onMounted(() => {
-
-  if (props.multiple && !['selector', 'image'].includes(props.inputType))
+  if (props.multiple && props.inputType !== 'selector')
     throw new Error('FileSelector组件属性multiple为true时inputType必须为selector');
   listRequestAll();
   console.log('fileselector tenentmdoe', isTenentMode);
@@ -512,10 +472,5 @@ onMounted(() => {
   right: 2px;
   top: 2px;
   cursor: pointer;
-}
-
-.itemList {
-  border: 1px solid #dcdfe6;
-  border-radius: 8px;
 }
 </style>

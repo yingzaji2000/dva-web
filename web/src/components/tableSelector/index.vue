@@ -3,7 +3,6 @@
 		popper-class="popperClass"
 		class="tableSelector"
 		multiple
-    :collapseTags="props.tableConfig.collapseTags"
 		@remove-tag="removeTag"
 		v-model="data"
 		placeholder="请选择"
@@ -19,22 +18,20 @@
 				<el-table
 					ref="tableRef"
 					:data="tableData"
-					:size="props.tableConfig.size"
+					size="mini"
 					border
 					row-key="id"
 					:lazy="props.tableConfig.lazy"
 					:load="props.tableConfig.load"
 					:tree-props="props.tableConfig.treeProps"
-					style="width: 600px"
+					style="width: 400px"
 					max-height="200"
 					height="200"
 					:highlight-current-row="!props.tableConfig.isMultiple"
-          @selection-change="handleSelectionChange"
-					@select="handleSelectionChange"
-          @selectAll="handleSelectionChange"
+					@selection-change="handleSelectionChange"
 					@current-change="handleCurrentChange"
 				>
-					<el-table-column v-if="props.tableConfig.isMultiple" fixed type="selection" reserve-selection width="55" />
+					<el-table-column v-if="props.tableConfig.isMultiple" fixed type="selection" width="55" />
 					<el-table-column fixed type="index" label="#" width="50" />
 					<el-table-column
 						:prop="item.prop"
@@ -59,32 +56,24 @@
 </template>
 
 <script setup lang="ts">
-import {computed, defineProps, onMounted, reactive, ref, watch} from 'vue';
+import { defineProps, reactive, ref, watch } from 'vue';
 import XEUtils from 'xe-utils';
 import { request } from '/@/utils/service';
 
 const props = defineProps({
-	modelValue: {
-    type: Array || String || Number,
-    default: () => []
-  },
+	modelValue: {},
 	tableConfig: {
-    type: Object,
-    default:{
-      url: null,
-      label: null, //显示值
-      value: null, //数据值
-      isTree: false,
-      lazy: true,
-      size:'default',
-      load: () => {},
-      data: [], //默认数据
-      isMultiple: false, //是否多选
-      collapseTags:false,
-      treeProps: { children: 'children', hasChildren: 'hasChildren' },
-      columns: [], //每一项对应的列表项
-    },
-  },
+		url: null,
+		label: null, //显示值
+		value: null, //数据值
+		isTree: false,
+		lazy: true,
+		load: () => {},
+		data: [], //默认数据
+		isMultiple: false, //是否多选
+		treeProps: { children: 'children', hasChildren: 'hasChildren' },
+		columns: [], //每一项对应的列表项
+	},
 	displayLabel: {},
 } as any);
 const emit = defineEmits(['update:modelValue']);
@@ -97,7 +86,7 @@ const multipleSelection = ref();
 // 搜索值
 const search = ref(undefined);
 //表格数据
-const tableData = ref([]);
+const tableData = ref();
 // 分页的配置
 const pageConfig = reactive({
 	page: 1,
@@ -110,6 +99,7 @@ const pageConfig = reactive({
  * @param val:Array
  */
 const handleSelectionChange = (val: any) => {
+	multipleSelection.value = val;
 	const { tableConfig } = props;
 	const result = val.map((item: any) => {
 		return item[tableConfig.value];
@@ -127,7 +117,7 @@ const handleSelectionChange = (val: any) => {
 const handleCurrentChange = (val: any) => {
 	const { tableConfig } = props;
 	if (!tableConfig.isMultiple && val) {
-		// data.value = [val[tableConfig.label]];
+		data.value = [val[tableConfig.label]];
 		emit('update:modelValue', val[tableConfig.value]);
 	}
 };
@@ -160,32 +150,6 @@ const getDict = async () => {
 	}
 };
 
-// 获取节点值
-const getNodeValues = () => {
-	request({
-    url:props.tableConfig.valueUrl,
-    method:'post',
-    data:{ids:props.modelValue}
-  }).then(res=>{
-    if(res.data.length>0){
-      data.value = res.data.map((item:any)=>{
-        return item[props.tableConfig.label]
-      })
-
-      tableRef.value!.clearSelection()
-      res.data.forEach((row) => {
-        tableRef.value!.toggleRowSelection(
-            row,
-            true,
-            false
-        )
-      })
-    }
-
-  })
- }
-
-
 /**
  * 下拉框展开/关闭
  * @param bool
@@ -205,12 +169,20 @@ const handlePageChange = (page: any) => {
 	getDict();
 };
 
-onMounted(()=>{
-  setTimeout(()=>{
-    getNodeValues()
-  },1000)
-})
-
+// 监听displayLabel的变化，更新数据
+watch(
+	() => {
+		return props.displayLabel;
+	},
+	(value) => {
+		const { tableConfig } = props;
+		const result = value
+			? value.map((item: any) => { return item[tableConfig.label];})
+			: null;
+		data.value = result;
+	},
+	{ immediate: true }
+);
 </script>
 
 <style scoped>

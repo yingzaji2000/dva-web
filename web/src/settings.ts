@@ -53,12 +53,9 @@ export default {
                     },
                     form: {
                         afterSubmit(ctx: any) {
-                            const {res} = ctx
                             // 增加crud提示
-                            if (res?.code == 2000) {
+                            if (ctx.res.code == 2000) {
                                 successNotification(ctx.res.msg);
-                            }else{
-                                return
                             }
                         },
                     },

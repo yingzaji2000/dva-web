@@ -1,7 +1,7 @@
 <template>
   <fs-page>
     <FileSelector v-model="selected" :showInput="false" ref="fileSelectorRef" :tabsShow="SHOW.ALL" :itemSize="120"
-      :multiple="false" :selectable="true" valueKey="url" inputType="image">
+      :multiple="true" :selectable="false">
       <!-- <template #input="scope">
         input：{{ scope }}
       </template> -->
