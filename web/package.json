@@ -5,10 +5,7 @@
 	"license": "MIT",
 	"scripts": {
 		"dev": "vite --force",
-<<<<<<< HEAD
-=======
 		"build:dev": "vite build --mode development",
->>>>>>> 1e500bd683f4666427b01aa673a864fa7ece9185
 		"build": "vite build",
 		"build:local": "vite build --mode local_prod",
 		"lint-fix": "eslint --fix --ext .js --ext .jsx --ext .vue src/"
@@ -30,11 +27,8 @@
 		"cron-chinese": "^1.2.0",
 		"cron-parser": "^5.1.1",
 		"cropperjs": "^1.6.2",
-<<<<<<< HEAD
 		"dvadmin3-celery-web": "^1.0.2",
-=======
 		"date-holidays": "^3.24.1",
->>>>>>> 1e500bd683f4666427b01aa673a864fa7ece9185
 		"e-icon-picker": "2.1.1",
 		"echarts": "^5.5.1",
 		"echarts-gl": "^2.0.9",
